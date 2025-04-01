@@ -1,0 +1,30 @@
+# Python 바이트 코드 파일
+__pycache__/
+*.py[cod]
+*$py.class
+
+# 가상 환경
+venv/
+env/
+ENV/
+
+# 분산 파이썬 파일
+*.so
+
+# 로그 파일
+*.log
+
+# 출력 디렉토리
+output/
+
+# macOS 관련 파일
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# 테스트 이미지 (필요시 주석 처리)
+# images/
+
+# 에디터 설정
+.vscode/
+.idea/ 
