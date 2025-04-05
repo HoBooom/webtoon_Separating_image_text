@@ -44,12 +44,12 @@ def test_text_detection(image_path):
     
     return image, text_regions
 
-def test_text_processing(image, text_regions, tesseract_path=None):
+def test_text_processing(image, text_regions, lang='korean'):
     """텍스트 처리 테스트"""
-    print("텍스트 처리 테스트 중...")
+    print("텍스트 처리 테스트 중 (PaddleOCR 사용)...")
     
     # 텍스트 처리기 초기화
-    processor = TextProcessor(tesseract_cmd=tesseract_path)
+    processor = TextProcessor(lang=lang)
     
     # 모든 텍스트 영역 처리
     results, clean_image = processor.process_all_regions(image, text_regions)
@@ -70,7 +70,7 @@ def test_text_processing(image, text_regions, tesseract_path=None):
 def parse_args():
     parser = argparse.ArgumentParser(description='웹툰 텍스트 처리 테스트')
     parser.add_argument('--image', type=str, required=True, help='테스트할 이미지 경로')
-    parser.add_argument('--tesseract', type=str, default=None, help='Tesseract 실행 파일 경로')
+    parser.add_argument('--lang', type=str, default='korean', help='OCR 언어 (korean, en, japan 등)')
     parser.add_argument('--mode', type=str, default='all', 
                         choices=['all', 'detect', 'process'],
                         help='테스트 모드 (all: 모든 기능, detect: 텍스트 감지, '
@@ -94,7 +94,7 @@ def main():
         if 'image' not in locals():
             image, text_regions = test_text_detection(args.image)
         
-        results, clean_image = test_text_processing(image, text_regions, args.tesseract)
+        results, clean_image = test_text_processing(image, text_regions, args.lang)
 
 if __name__ == "__main__":
     main() 

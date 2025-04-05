@@ -12,9 +12,9 @@ def parse_args():
     parser.add_argument('--input', type=str, required=True, help='입력 이미지 파일 경로')
     parser.add_argument('--output_dir', type=str, default='output', help='결과 저장 디렉토리')
     parser.add_argument('--tesseract_path', type=str, default=None, 
-                        help='Tesseract 실행 파일 경로 (Windows에서 필요)')
-    parser.add_argument('--lang', type=str, default='kor+eng', 
-                        help='OCR 언어 (기본값: 한국어+영어)')
+                        help='더 이상 사용되지 않음 (Tesseract 호환성 유지)')
+    parser.add_argument('--lang', type=str, default='korean', 
+                        help='OCR 언어 (기본값: korean, 가능한 값: korean, en, japan 등)')
     parser.add_argument('--visualize', action='store_true', 
                         help='텍스트 감지 결과 시각화')
     
@@ -54,7 +54,7 @@ def main():
         print(f"텍스트 영역 시각화 저장: {viz_path}")
     
     # 텍스트 처리 (추출 및 제거)
-    print("텍스트 처리 중...")
+    print("텍스트 처리 중 (PaddleOCR 사용)...")
     processor = TextProcessor(tesseract_cmd=args.tesseract_path, lang=args.lang)
     results, clean_image = processor.process_all_regions(image, text_regions)
     

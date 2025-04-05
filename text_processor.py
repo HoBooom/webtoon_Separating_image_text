@@ -1,19 +1,30 @@
 import cv2
 import numpy as np
-import pytesseract
+from paddleocr import PaddleOCR
 
 class TextProcessor:
-    def __init__(self, tesseract_cmd=None, lang='kor+eng'):
+    def __init__(self, tesseract_cmd=None, lang='korean'):
         """
         텍스트 처리 모듈 초기화
         
         Args:
-            tesseract_cmd: Tesseract 실행 파일 경로 (Windows에서 필요)
-            lang: 인식할 언어 (기본값: 한국어+영어)
+            tesseract_cmd: 사용하지 않음 (Tesseract 호환성 유지)
+            lang: 인식할 언어 (기본값: 한국어)
         """
-        if tesseract_cmd:
-            pytesseract.pytesseract.tesseract_cmd = tesseract_cmd
-        self.lang = lang
+        # 언어 매핑 (Tesseract 언어 코드 -> PaddleOCR 언어 코드)
+        lang_map = {
+            'kor': 'korean',
+            'kor,en': 'korean',
+            'eng': 'en',
+            'en': 'en',
+            'jpn': 'japan',
+        }
+        
+        # 언어 코드 변환
+        paddle_lang = lang_map.get(lang, lang)
+        
+        # PaddleOCR 초기화
+        self.ocr = PaddleOCR(use_angle_cls=True, lang=paddle_lang, show_log=False)
         self.inpaint_radius = 5
     
     def extract_text(self, image, region):
@@ -31,25 +42,19 @@ class TextProcessor:
         # 텍스트 영역 추출
         roi = image[minr:maxr, minc:maxc]
         
-        # 전처리: 이미지 향상
-        if len(roi.shape) == 3:  # 컬러 이미지인 경우
-            gray = cv2.cvtColor(roi, cv2.COLOR_BGR2GRAY)
-        else:  # 이미 그레이스케일인 경우
-            gray = roi
+        # ROI 크기가 너무 작으면 빈 문자열 반환
+        if roi.shape[0] < 5 or roi.shape[1] < 5:
+            return ""
         
-        # 노이즈 제거
-        denoised = cv2.fastNlMeansDenoising(gray, None, 10, 7, 21)
+        # PaddleOCR로 텍스트 인식
+        result = self.ocr.ocr(roi, cls=True)
         
-        # 대비 향상
-        clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
-        enhanced = clahe.apply(denoised)
-        
-        # 이진화
-        _, binary = cv2.threshold(enhanced, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-        
-        # OCR 실행
-        custom_config = f'--oem 3 --psm 6 -l {self.lang}'
-        text = pytesseract.image_to_string(binary, config=custom_config)
+        # 결과 추출
+        text = ""
+        if result and result[0]:
+            for line in result[0]:
+                if line[1][0]:  # 텍스트와 신뢰도의 튜플
+                    text += line[1][0] + " "
         
         return text.strip()
     

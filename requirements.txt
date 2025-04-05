@@ -1,6 +1,8 @@
-opencv-python
-pytesseract
-numpy>=1.26.0
+opencv-python>=4.9.0
+paddlepaddle
+paddleocr
+numpy>=1.21.0
 matplotlib
 pillow
-scikit-image 
+scikit-image
+tqdm 
