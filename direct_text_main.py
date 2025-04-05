@@ -15,8 +15,6 @@ def parse_args():
                         help='더 이상 사용되지 않음 (Tesseract 호환성 유지)')
     parser.add_argument('--lang', type=str, default='korean', 
                         help='OCR 언어 (기본값: korean, 가능한 값: korean, en, japan 등)')
-    parser.add_argument('--confidence', type=float, default=0.5,
-                        help='텍스트 인식 신뢰도 임계값 (0.0 ~ 1.0, 기본값: 0.5)')
     parser.add_argument('--visualize', action='store_true', 
                         help='텍스트 감지 결과 시각화')
     
@@ -57,11 +55,7 @@ def main():
     
     # 텍스트 처리 (추출 및 제거)
     print("텍스트 처리 중 (PaddleOCR 사용)...")
-    processor = TextProcessor(
-        tesseract_cmd=args.tesseract_path, 
-        lang=args.lang,
-        confidence_threshold=args.confidence
-    )
+    processor = TextProcessor(tesseract_cmd=args.tesseract_path, lang=args.lang)
     results, clean_image = processor.process_all_regions(image, text_regions)
     
     # 추출된 텍스트 저장
@@ -69,7 +63,6 @@ def main():
     with open(text_path, 'w', encoding='utf-8') as f:
         json.dump(results, f, ensure_ascii=False, indent=2)
     print(f"추출된 텍스트 저장: {text_path}")
-    print(f"추출된 유효 텍스트 영역 수: {len(results)}")
     
     # 텍스트가 제거된 이미지 저장
     clean_path = os.path.join(output_dir, f"{timestamp}_clean.jpg")
