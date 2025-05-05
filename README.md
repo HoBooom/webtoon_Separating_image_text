@@ -1,97 +1,88 @@
-# 웹툰 텍스트 추출 및 제거 프로그램 (Azure OCR 기반)
+# 웹툰 말풍선 텍스트 추출 시스템
 
-이 프로그램은 웹툰 이미지에서 텍스트를 감지하고 추출한 후, 텍스트를 제거하여 깨끗한 이미지를 생성합니다. Microsoft Azure Computer Vision OCR API를 사용하여 텍스트를 인식합니다.
+이 프로젝트는 웹툰 이미지에서 말풍선을 감지하고, 말풍선 내의 텍스트만 인식하여 추출하는 시스템입니다.
 
 ## 주요 기능
 
-1. Azure OCR API를 사용한 텍스트 감지 및 인식
-2. 인식된 텍스트 JSON 파일로 저장
-3. 텍스트가 제거된 깨끗한 이미지 생성
-4. 선택적으로 로컬 텍스트 감지 알고리즘 사용 가능
+1. Hugging Face의 YOLOv8 기반 말풍선 감지 모델을 사용하여 웹툰 이미지에서 말풍선 영역을 감지
+2. Azure Computer Vision OCR을 사용하여 텍스트 인식
+3. 말풍선 내에 위치한 텍스트만 필터링하여 처리
+4. 말풍선 내 텍스트가 제거된 클린 이미지 생성
+5. 결과 시각화 (말풍선 및 텍스트 영역 표시)
 
 ## 설치 방법
 
-1. 이 저장소를 클론합니다:
-   ```
-   git clone <repository_url>
-   cd <repository_directory>
-   ```
+### 1. 필요 라이브러리 설치
 
-2. 필요한 패키지를 설치합니다:
-   ```
-   pip install -r requirements.txt
-   ```
+```bash
+pip install ultralytics opencv-python pillow numpy torch azure-cognitiveservices-vision-computervision requests
+```
 
-3. Azure 계정 및 Computer Vision API 설정:
-   - [Azure Portal](https://portal.azure.com/)에서 Computer Vision 리소스를 생성합니다.
-   - API 키와 엔드포인트를 확인하고 저장합니다.
+### 2. Azure Computer Vision API 설정
+
+- [Azure 포털](https://portal.azure.com/)에서 Computer Vision 리소스 생성
+- API 키 및 엔드포인트 정보 확인
+
+### 3. Hugging Face 모델 사용 설정
+
+- Hugging Face 모델은 코드 실행 시 자동으로 다운로드됩니다.
+- 오프라인 사용을 위해서는 모델을 로컬에 다운로드할 수 있습니다.
 
 ## 사용 방법
 
-기본 사용법 (Azure OCR로 텍스트 감지):
-```
-python direct_text_main.py --input <이미지_경로> --api_key <API_키> --endpoint <엔드포인트>
-```
+### 예제 코드
 
-로컬 텍스트 감지 알고리즘 사용:
-```
-python direct_text_main.py --input <이미지_경로> --api_key <API_키> --endpoint <엔드포인트> --use_local_detection
-```
+```python
+from speech_bubble_ocr import SpeechBubbleOCR
 
-전체 옵션:
-```
-python direct_text_main.py --input <이미지_경로> --output_dir <결과_저장_디렉토리> --api_key <API_키> --endpoint <엔드포인트> --lang <언어_코드> --visualize [--use_local_detection]
-```
+# 초기화
+processor = SpeechBubbleOCR(
+    model_path="kitsumed/yolov8m_seg-speech-bubble",  # Hugging Face 모델
+    azure_api_key="your_azure_api_key",
+    azure_endpoint="your_azure_endpoint",
+    lang="ko"  # 한국어
+)
 
-### 매개변수 설명
+# 이미지 처리
+image_path = "path_to_webtoon_image.jpg"
+text_results, clean_image = processor.process_image(image_path)
 
-- `--input`: 처리할 이미지 파일 경로 (필수)
-- `--output_dir`: 결과 저장 디렉토리 (기본값: 'output')
-- `--api_key`: Azure Computer Vision API 키 (필수)
-- `--endpoint`: Azure Computer Vision API 엔드포인트 (필수)
-- `--lang`: OCR 언어 코드 (기본값: 'ko', 가능 값: 'ko', 'en', 'ja' 등)
-- `--visualize`: 텍스트 감지 결과 시각화 (선택사항)
-- `--use_local_detection`: 로컬 텍스트 감지 알고리즘 사용 (기본값: Azure OCR 사용)
+# 결과 시각화
+result_image = processor.visualize_results(image_path, "result.jpg")
 
-### 예시
-
-Azure OCR로 텍스트 감지 및 인식:
-```
-python direct_text_main.py --input samples/webtoon.jpg --api_key your_api_key --endpoint https://your-resource.cognitiveservices.azure.com/ --lang ko --visualize
+# 결과 출력
+print(f"말풍선 내 텍스트 개수: {len(text_results)}")
+for idx, (key, item) in enumerate(text_results.items()):
+    print(f"텍스트 {idx}: {item['text']}")
 ```
 
-로컬 텍스트 감지 + Azure OCR 인식:
+### 명령줄 도구 사용
+
+```bash
+python example_usage.py --image path_to_image.jpg --api_key your_azure_api_key --endpoint your_azure_endpoint
 ```
-python direct_text_main.py --input samples/webtoon.jpg --api_key your_api_key --endpoint https://your-resource.cognitiveservices.azure.com/ --lang ko --visualize --use_local_detection
-```
 
-## 두 가지 감지 방식 비교
+#### 추가 옵션
 
-1. **Azure OCR 방식 (기본)**: 
-   - 텍스트 감지와 인식을 모두 Azure API로 처리
-   - 장점: 더 정확한 텍스트 감지, 정교한 인식
-   - 단점: API 호출 비용 발생, 인터넷 연결 필요
-
-2. **로컬 감지 + Azure OCR 방식**:
-   - 텍스트 영역 감지는 로컬에서, 인식만 Azure로 처리
-   - 장점: API 호출 횟수 감소, 일부 오프라인 작업 가능
-   - 단점: 텍스트 감지 정확도가 상대적으로 낮을 수 있음
+- `--model`: 사용할 Hugging Face 말풍선 감지 모델 (기본값: kitsumed/yolov8m_seg-speech-bubble)
+- `--lang`: OCR 언어 (기본값: ko)
+- `--output_dir`: 결과 저장 디렉토리 (기본값: output)
+- `--overlap`: 텍스트가 말풍선 내에 있다고 판단할 최소 중첩 비율 (0.0-1.0, 기본값: 0.5)
+- `--confidence`: 말풍선 감지 신뢰도 임계값 (0.0-1.0, 기본값: 0.5)
 
 ## 출력 결과
 
-프로그램은 다음과 같은 결과물을 생성합니다:
+1. 시각화된 이미지: 말풍선(파란색)과 인식된 텍스트 영역(녹색) 표시
+2. 텍스트가 삭제된 클린 이미지: 말풍선 내 텍스트만 제거된 이미지
+3. 텍스트 파일: 추출된 텍스트 내용
 
-1. 텍스트 영역이 표시된 시각화 이미지 (--visualize 옵션 사용 시)
-2. 추출된 텍스트 정보가 담긴 JSON 파일
-3. 텍스트가 제거된 깨끗한 이미지
+## 주의사항
 
-출력 파일 이름에는 타임스탬프가 포함됩니다.
+1. 말풍선 감지 품질은 사용하는 모델과 웹툰 스타일에 따라 달라질 수 있습니다.
+2. Azure API 사용량에 따라 비용이 발생할 수 있습니다.
+3. 이미지 해상도가 높을수록 처리 시간이 길어질 수 있습니다.
 
-## 구현 세부 사항
+## 참고 자료
 
-- `AzureTextProcessor`: Azure Computer Vision API를 사용하여 텍스트를 감지, 인식, 제거하는 기능 제공
-- `TextDetector`: (선택사항) 로컬에서 이미지 처리 기술을 사용하여 텍스트 영역을 감지하는 기능 제공
-
-## 라이센스
-
-이 프로젝트는 MIT 라이센스 하에 배포됩니다. 
+- [YOLOv8 Speech Bubble Detection Model](https://huggingface.co/kitsumed/yolov8m_seg-speech-bubble)
+- [Azure Computer Vision OCR](https://docs.microsoft.com/azure/cognitive-services/computer-vision/overview-ocr) 
