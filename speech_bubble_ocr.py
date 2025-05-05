@@ -42,6 +42,11 @@ class SpeechBubbleOCR:
         
         # 기본 중첩 임계값 설정
         self.overlap_threshold = 0.5
+        
+        # 텍스트 박스 병합 설정
+        self.merge_boxes = True  # 기본적으로 병합 활성화
+        self.merge_distance_threshold = 20  # 텍스트 박스 간 최대 병합 거리 (픽셀)
+        self.merge_any_overlap = True  # 겹치는 부분이 있으면 모두 병합
     
     def detect_speech_bubbles(self, image):
         """
@@ -129,13 +134,200 @@ class SpeechBubbleOCR:
         
         return False
     
-    def process_image(self, image_path, overlap_threshold=None):
+    def has_overlap(self, box1, box2):
+        """
+        두 박스 간에 겹치는 부분이 있는지 확인합니다.
+        
+        Args:
+            box1: 첫 번째 박스 [minr, minc, maxr, maxc]
+            box2: 두 번째 박스 [minr, minc, maxr, maxc]
+            
+        Returns:
+            겹치는 부분이 있으면 True, 없으면 False
+        """
+        box1_minr, box1_minc, box1_maxr, box1_maxc = box1
+        box2_minr, box2_minc, box2_maxr, box2_maxc = box2
+        
+        # 두 박스가 겹치지 않는 경우
+        if (box1_maxr <= box2_minr or  # box1이 box2의 위쪽에 있음
+            box1_minr >= box2_maxr or  # box1이 box2의 아래쪽에 있음
+            box1_maxc <= box2_minc or  # box1이 box2의 왼쪽에 있음
+            box1_minc >= box2_maxc):   # box1이 box2의 오른쪽에 있음
+            return False
+        
+        return True
+    
+    def should_merge_boxes(self, box1, box2, distance_threshold):
+        """
+        두 박스를 병합해야 하는지 결정합니다.
+        
+        Args:
+            box1: 첫 번째 박스 [minr, minc, maxr, maxc]
+            box2: 두 번째 박스 [minr, minc, maxr, maxc]
+            distance_threshold: 병합 거리 임계값
+            
+        Returns:
+            병합해야 하면 True, 아니면 False
+        """
+        # 겹치는 부분이 있는 경우 바로 병합
+        if self.merge_any_overlap and self.has_overlap(box1, box2):
+            return True
+            
+        # 거리 기반 병합 로직 (이전과 동일)
+        box1_minr, box1_minc, box1_maxr, box1_maxc = box1
+        box2_minr, box2_minc, box2_maxr, box2_maxc = box2
+        
+        # 두 박스 간의 거리 계산 (수직, 수평 거리)
+        horizontal_distance = min(
+            abs(box1_minc - box2_maxc),  # box1 왼쪽 - box2 오른쪽
+            abs(box1_maxc - box2_minc)   # box1 오른쪽 - box2 왼쪽
+        )
+        vertical_distance = min(
+            abs(box1_minr - box2_maxr),  # box1 위 - box2 아래
+            abs(box1_maxr - box2_minr)   # box1 아래 - box2 위
+        )
+        
+        # 수직으로 겹치는 경우 수평 거리만 고려
+        if (box1_minr <= box2_maxr and box1_maxr >= box2_minr):
+            return horizontal_distance <= distance_threshold
+        # 수평으로 겹치는 경우 수직 거리만 고려
+        elif (box1_minc <= box2_maxc and box1_maxc >= box2_minc):
+            return vertical_distance <= distance_threshold
+        # 둘 다 겹치지 않는 경우 대각선 거리 계산
+        else:
+            diagonal_distance = np.sqrt(horizontal_distance**2 + vertical_distance**2)
+            return diagonal_distance <= distance_threshold
+    
+    def merge_text_boxes(self, text_results, speech_bubbles, distance_threshold=None):
+        """
+        텍스트 박스들을 병합합니다. 단, 같은 말풍선 내에 있는 텍스트 박스들만 병합합니다.
+        
+        Args:
+            text_results: OCR 결과 사전
+            speech_bubbles: 감지된 말풍선 영역 목록
+            distance_threshold: 텍스트 박스 간 최대 병합 거리 (픽셀)
+            
+        Returns:
+            병합된 텍스트 결과 사전
+        """
+        if not self.merge_boxes:
+            return text_results
+        
+        if distance_threshold is None:
+            distance_threshold = self.merge_distance_threshold
+        
+        # 텍스트 박스와 관련 정보를 리스트로 변환
+        boxes = []
+        for key, item in text_results.items():
+            if isinstance(item, dict) and 'bbox' in item:
+                minr, minc, maxr, maxc = item['bbox']
+                boxes.append({
+                    'key': key,
+                    'bbox': [minr, minc, maxr, maxc],
+                    'text': item.get('text', ''),
+                    'confidence': item.get('confidence', 0),
+                    'merged': False,  # 병합 여부 표시
+                    'cluster_id': -1,  # 클러스터 ID 초기화
+                    'bubble_id': -1  # 속한 말풍선 ID
+                })
+        
+        # 각 텍스트 박스가 어떤 말풍선에 속하는지 식별
+        for i, box in enumerate(boxes):
+            for j, bubble in enumerate(speech_bubbles):
+                if self.is_text_in_speech_bubble(box['bbox'], [bubble]):
+                    boxes[i]['bubble_id'] = j
+                    break
+        
+        # 클러스터링 알고리즘을 사용하여 병합할 박스 그룹 식별 (같은 말풍선에 있는 박스들만)
+        cluster_id = 0
+        
+        # 첫 번째 단계: 같은 말풍선 내에 있는 박스들 간의 연결 관계 확인
+        for i in range(len(boxes)):
+            if boxes[i]['cluster_id'] == -1:
+                boxes[i]['cluster_id'] = cluster_id
+                
+                # 이 박스와 연결된 다른 모든 박스들을 찾기 위한 BFS
+                queue = [i]
+                while queue:
+                    current_idx = queue.pop(0)
+                    current_box = boxes[current_idx]
+                    current_bubble_id = current_box['bubble_id']
+                    
+                    # 같은 말풍선에 속하지 않는 텍스트 박스는 병합하지 않음
+                    if current_bubble_id == -1:
+                        continue
+                    
+                    for j in range(len(boxes)):
+                        # 같은 말풍선에 속하는지 확인
+                        if boxes[j]['bubble_id'] != current_bubble_id:
+                            continue
+                            
+                        # 아직 클러스터에 할당되지 않았거나, 다른 클러스터에 속한 박스
+                        if boxes[j]['cluster_id'] == -1 or boxes[j]['cluster_id'] != current_box['cluster_id']:
+                            # 두 박스가 병합 조건을 만족하는지 확인
+                            if self.should_merge_boxes(current_box['bbox'], boxes[j]['bbox'], distance_threshold):
+                                # 다른 클러스터에 이미 속해 있으면 두 클러스터를 병합
+                                if boxes[j]['cluster_id'] != -1:
+                                    old_cluster_id = boxes[j]['cluster_id']
+                                    for k in range(len(boxes)):
+                                        if boxes[k]['cluster_id'] == old_cluster_id:
+                                            boxes[k]['cluster_id'] = current_box['cluster_id']
+                                else:
+                                    # 클러스터에 할당되지 않은 경우 현재 클러스터에 추가
+                                    boxes[j]['cluster_id'] = current_box['cluster_id']
+                                    queue.append(j)
+                
+                cluster_id += 1
+        
+        # 두 번째 단계: 클러스터별로 박스 병합
+        clusters = {}
+        for i, box in enumerate(boxes):
+            cluster = box['cluster_id']
+            if cluster not in clusters:
+                clusters[cluster] = []
+            clusters[cluster].append(box)
+        
+        # 각 클러스터에서 모든 박스를 병합
+        merged_boxes = []
+        for cluster_boxes in clusters.values():
+            if not cluster_boxes:
+                continue
+                
+            # 클러스터의 모든 박스를 포함하는 최대 경계 계산
+            min_r = min(box['bbox'][0] for box in cluster_boxes)
+            min_c = min(box['bbox'][1] for box in cluster_boxes)
+            max_r = max(box['bbox'][2] for box in cluster_boxes)
+            max_c = max(box['bbox'][3] for box in cluster_boxes)
+            
+            # 모든 텍스트 결합
+            merged_text = " ".join(box['text'] for box in cluster_boxes)
+            
+            # 신뢰도 평균 계산
+            total_confidence = sum(box['confidence'] for box in cluster_boxes)
+            avg_confidence = total_confidence / len(cluster_boxes) if cluster_boxes else 0
+            
+            # 병합된 박스 저장
+            merged_boxes.append({
+                'bbox': [min_r, min_c, max_r, max_c],
+                'text': merged_text,
+                'confidence': avg_confidence
+            })
+        
+        # 새로운 결과 사전 생성
+        merged_results = {}
+        for i, box in enumerate(merged_boxes):
+            merged_results[i] = box
+        
+        return merged_results
+    
+    def process_image(self, image_path, overlap_threshold=None, merge_distance=None):
         """
         이미지에서 말풍선을 감지하고 그 내부 텍스트만 추출합니다.
         
         Args:
             image_path: 이미지 경로
             overlap_threshold: 텍스트가 말풍선 내에 있다고 판단할 최소 중첩 비율
+            merge_distance: 텍스트 박스 병합 거리 임계값
             
         Returns:
             텍스트 추출 결과와 처리된 이미지 (말풍선 내 텍스트가 삭제된)
@@ -167,18 +359,25 @@ class SpeechBubbleOCR:
                     filtered_results[count] = item
                     count += 1
         
-        # 4. 말풍선 내 텍스트만 삭제한 이미지 생성
+        # 4. 같은 말풍선 내 가까운 텍스트 박스 병합 (옵션)
+        if self.merge_boxes:
+            if merge_distance is not None:
+                self.merge_distance_threshold = merge_distance
+            filtered_results = self.merge_text_boxes(filtered_results, speech_bubbles)
+        
+        # 5. 말풍선 내 텍스트만 삭제한 이미지 생성
         clean_image = self.ocr_processor.remove_all_text(image, filtered_results)
         
         return filtered_results, clean_image
     
-    def visualize_results(self, image_path, output_path=None):
+    def visualize_results(self, image_path, output_path=None, show_merged=True):
         """
         결과를 시각화하여 표시합니다.
         
         Args:
             image_path: 원본 이미지 경로
             output_path: 결과 이미지 저장 경로 (없으면 저장하지 않음)
+            show_merged: 병합된 텍스트 박스 표시 여부
             
         Returns:
             시각화된 이미지
@@ -193,7 +392,15 @@ class SpeechBubbleOCR:
         speech_bubbles = self.detect_speech_bubbles(image)
         
         # 텍스트 인식 및 필터링
-        text_results, _ = self.process_image(image_path)
+        if show_merged:
+            # 텍스트 박스 병합 포함된 결과
+            text_results, _ = self.process_image(image_path)
+        else:
+            # 병합 없이 텍스트 감지만 수행
+            temp_merge_setting = self.merge_boxes
+            self.merge_boxes = False
+            text_results, _ = self.process_image(image_path)
+            self.merge_boxes = temp_merge_setting
         
         # 결과 이미지 생성
         result_image = image.copy()
@@ -208,13 +415,15 @@ class SpeechBubbleOCR:
         for idx, (key, item) in enumerate(text_results.items()):
             bbox = item['bbox']
             text = item.get('text', '')
+            confidence = item.get('confidence', 0)
             minr, minc, maxr, maxc = bbox
             
             # 텍스트 영역 표시
             cv2.rectangle(result_image, (minc, minr), (maxc, maxr), (0, 255, 0), 2)
             
-            # 텍스트 내용 표시
-            cv2.putText(result_image, f"{idx}: {text[:20]}", 
+            # 텍스트 내용 표시 (길이 제한)
+            display_text = text[:20] + "..." if len(text) > 20 else text
+            cv2.putText(result_image, f"{idx}: {display_text}", 
                        (minc, minr-10), font, 0.5, (0, 255, 0), 1)
         
         # 결과 저장
@@ -237,6 +446,11 @@ if __name__ == "__main__":
     
     # 모듈 초기화 및 처리
     processor = SpeechBubbleOCR(model_path, azure_api_key, azure_endpoint)
+    
+    # 텍스트 박스 병합 설정
+    processor.merge_boxes = True
+    processor.merge_distance_threshold = 15  # 병합 거리 임계값 (픽셀)
+    processor.merge_any_overlap = True  # 겹치는 부분이 있으면 모두 병합
     
     # 말풍선 내 텍스트만 처리 (중첩 임계값을 0.7로 설정하여 더 엄격하게)
     text_results, clean_image = processor.process_image(image_path, overlap_threshold=0.7)

@@ -25,12 +25,22 @@ def parse_args():
     parser.add_argument('--lang', type=str, default='ko', help='OCR 언어 (ko, en, ja 등)')
     parser.add_argument('--confidence', type=float, default=0.5, help='말풍선 감지 신뢰도 임계값 (0.0-1.0)')
     parser.add_argument('--overlap', type=float, default=0.5, help='텍스트-말풍선 중첩 비율 임계값 (0.0-1.0)')
+    parser.add_argument('--merge', action='store_true', default=True,
+                        help='가까운 텍스트 박스 병합 활성화 (기본값: 활성화)')
+    parser.add_argument('--no-merge', dest='merge', action='store_false',
+                        help='텍스트 박스 병합 비활성화')
+    parser.add_argument('--merge_distance', type=int, default=20,
+                        help='텍스트 박스 병합 거리 임계값 (픽셀, 기본값: 20)')
+    parser.add_argument('--merge_any_overlap', action='store_true', default=True,
+                        help='겹치는 부분이 있는 모든 텍스트 박스 병합 (기본값: 활성화)')
+    parser.add_argument('--no-merge_any_overlap', dest='merge_any_overlap', action='store_false',
+                        help='겹침 기반 병합 비활성화, 거리만 사용')
     parser.add_argument('--pattern', type=str, default='*.jpg,*.jpeg,*.png', 
                         help='처리할 이미지 파일 패턴 (쉼표로 구분)')
     parser.add_argument('--visualize', action='store_true', help='결과 시각화 이미지 생성')
     return parser.parse_args()
 
-def process_image(processor, image_path, output_dir, overlap, visualize=False):
+def process_image(processor, image_path, output_dir, overlap, merge_distance, visualize=False):
     """
     단일 이미지 처리 및 결과 저장
     
@@ -39,6 +49,7 @@ def process_image(processor, image_path, output_dir, overlap, visualize=False):
         image_path: 처리할 이미지 경로
         output_dir: 결과 저장 디렉토리
         overlap: 텍스트-말풍선 중첩 비율 임계값
+        merge_distance: 텍스트 박스 병합 거리 임계값
         visualize: 시각화 이미지 생성 여부
         
     Returns:
@@ -53,7 +64,11 @@ def process_image(processor, image_path, output_dir, overlap, visualize=False):
     json_output_path = os.path.join(output_dir, f"{name}_text.json")
     
     # 말풍선 내 텍스트만 처리
-    text_results, clean_image = processor.process_image(image_path, overlap_threshold=overlap)
+    text_results, clean_image = processor.process_image(
+        image_path, 
+        overlap_threshold=overlap,
+        merge_distance=merge_distance
+    )
     
     # 결과 저장
     cv2.imwrite(clean_output_path, clean_image)
@@ -62,6 +77,9 @@ def process_image(processor, image_path, output_dir, overlap, visualize=False):
     json_data = {
         "image": image_path,
         "total_texts": len(text_results),
+        "merge_enabled": processor.merge_boxes,
+        "merge_distance": processor.merge_distance_threshold if processor.merge_boxes else None,
+        "merge_any_overlap": processor.merge_any_overlap if processor.merge_boxes else None,
         "texts": []
     }
     
@@ -116,6 +134,23 @@ def main():
         confidence_threshold=args.confidence
     )
     
+    # 텍스트 박스 병합 설정
+    processor.merge_boxes = args.merge
+    processor.merge_distance_threshold = args.merge_distance
+    processor.merge_any_overlap = args.merge_any_overlap
+    
+    print(f"말풍선 감지 신뢰도 임계값: {args.confidence}")
+    print(f"텍스트-말풍선 중첩 비율 임계값: {args.overlap}")
+    
+    merge_mode = "비활성화"
+    if args.merge:
+        if args.merge_any_overlap:
+            merge_mode = f"활성화 (겹치는 모든 박스 병합, 거리 임계값: {args.merge_distance}px)"
+        else:
+            merge_mode = f"활성화 (거리 기반 병합, 임계값: {args.merge_distance}px)"
+    
+    print(f"텍스트 박스 병합: {merge_mode}")
+    
     # 결과 요약 파일
     summary_path = os.path.join(args.output_dir, "summary.json")
     
@@ -132,7 +167,8 @@ def main():
                 processor, 
                 image_path, 
                 args.output_dir, 
-                args.overlap, 
+                args.overlap,
+                args.merge_distance,
                 args.visualize
             )
             total_texts += text_count
@@ -165,6 +201,9 @@ def main():
             "model": args.model,
             "confidence_threshold": args.confidence,
             "overlap_threshold": args.overlap,
+            "merge_enabled": args.merge,
+            "merge_distance": args.merge_distance if args.merge else None,
+            "merge_any_overlap": args.merge_any_overlap if args.merge else None,
             "language": args.lang
         },
         "results": results

@@ -17,6 +17,16 @@ def parse_args():
                         help='텍스트가 말풍선 내에 있다고 판단할 최소 중첩 비율 (0.0-1.0)')
     parser.add_argument('--confidence', type=float, default=0.5, 
                         help='말풍선 감지 신뢰도 임계값 (0.0-1.0)')
+    parser.add_argument('--merge', action='store_true', default=True,
+                        help='가까운 텍스트 박스 병합 활성화 (기본값: 활성화)')
+    parser.add_argument('--no-merge', dest='merge', action='store_false',
+                        help='텍스트 박스 병합 비활성화')
+    parser.add_argument('--merge_distance', type=int, default=20,
+                        help='텍스트 박스 병합 거리 임계값 (픽셀, 기본값: 20)')
+    parser.add_argument('--merge_any_overlap', action='store_true', default=True,
+                        help='겹치는 부분이 있는 모든 텍스트 박스 병합 (기본값: 활성화)')
+    parser.add_argument('--no-merge_any_overlap', dest='merge_any_overlap', action='store_false',
+                        help='겹침 기반 병합 비활성화, 거리만 사용')
     return parser.parse_args()
 
 def main():
@@ -43,13 +53,31 @@ def main():
         confidence_threshold=args.confidence
     )
     
+    # 텍스트 박스 병합 설정
+    processor.merge_boxes = args.merge
+    processor.merge_distance_threshold = args.merge_distance
+    processor.merge_any_overlap = args.merge_any_overlap
+    
     print(f"이미지 처리 중: {args.image}")
     print(f"사용 모델: {args.model}")
     print(f"말풍선 감지 신뢰도 임계값: {args.confidence}")
     print(f"텍스트-말풍선 중첩 비율 임계값: {args.overlap}")
     
-    # 말풍선 내 텍스트만 처리 (중첩 임계값 적용)
-    text_results, clean_image = processor.process_image(args.image, overlap_threshold=args.overlap)
+    merge_mode = "비활성화"
+    if args.merge:
+        if args.merge_any_overlap:
+            merge_mode = f"활성화 (겹치는 모든 박스 병합, 거리 임계값: {args.merge_distance}px)"
+        else:
+            merge_mode = f"활성화 (거리 기반 병합, 임계값: {args.merge_distance}px)"
+    
+    print(f"텍스트 박스 병합: {merge_mode}")
+    
+    # 말풍선 내 텍스트만 처리 (중첩 임계값과 병합 거리 적용)
+    text_results, clean_image = processor.process_image(
+        args.image, 
+        overlap_threshold=args.overlap,
+        merge_distance=args.merge_distance
+    )
     
     # 결과 시각화
     result_image = processor.visualize_results(args.image)
@@ -62,6 +90,9 @@ def main():
     json_data = {
         "image": args.image,
         "total_texts": len(text_results),
+        "merge_enabled": args.merge,
+        "merge_distance": args.merge_distance if args.merge else None,
+        "merge_any_overlap": args.merge_any_overlap if args.merge else None,
         "texts": []
     }
     
