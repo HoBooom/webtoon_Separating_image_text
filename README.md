@@ -56,11 +56,30 @@ for idx, (key, item) in enumerate(text_results.items()):
     print(f"텍스트 {idx}: {item['text']}")
 ```
 
-### 명령줄 도구 사용
+### 명령줄 도구 사용_ 실행
 
 ```bash
 python example_usage.py --image path_to_image.jpg --api_key your_azure_api_key --endpoint your_azure_endpoint
 ```
+### 글자 박스 병합_주 실행 내요
+```bash
+python example_usage.py --image test_images/sample.jpg --api_key your_key --endpoint your_endpoint --merge --merge_any_overlap
+```
+### 병합 사용 x
+```bash
+python example_usage.py --image test_images/sample.jpg --api_key your_key --endpoint your_endpoint --merge --no-merge_any_overlap
+```
+
+### for fine_tuning the detection parameters
+```bash
+python tune_detection.py --image path_to_image.jpg --api_key your_azure_api_key --endpoint your_azure_endpoint
+```
+
+### for batch processing
+```bash
+python batch_process.py --input_dir your_images_folder --api_key your_azure_api_key --endpoint your_azure_endpoint
+```
+
 
 #### 추가 옵션
 
