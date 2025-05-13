@@ -61,7 +61,7 @@ for idx, (key, item) in enumerate(text_results.items()):
 ```bash
 python example_usage.py --image path_to_image.jpg --api_key your_azure_api_key --endpoint your_azure_endpoint
 ```
-### 글자 박스 병합_주 실행 내요
+### 글자 박스 병합_주 실행 내용
 ```bash
 python example_usage.py --image test_images/sample.jpg --api_key your_key --endpoint your_endpoint --merge --merge_any_overlap
 ```
