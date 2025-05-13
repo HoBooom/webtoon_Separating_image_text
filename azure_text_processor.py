@@ -57,7 +57,7 @@ class AzureTextProcessor:
         
         # Azure OCR API 호출
         try:
-            response = requests.post(
+            response = requests.post( #azure ocr api에 http post 요청
                 self.ocr_url,
                 headers=self.headers,
                 params={'language': self.lang, 'readingOrder': 'natural'},
