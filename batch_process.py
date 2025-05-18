@@ -59,9 +59,14 @@ def process_image(processor, image_path, output_dir, overlap, merge_distance, vi
     image_basename = os.path.basename(image_path)
     name, ext = os.path.splitext(image_basename)
     
-    # 출력 경로 설정
-    clean_output_path = os.path.join(output_dir, f"{name}_clean{ext}")
-    json_output_path = os.path.join(output_dir, f"{name}_text.json")
+    # 현재 시간을 파일명에 추가
+    current_time = time.strftime("%Y%m%d_%H%M%S")
+    
+    #PNG형식으로 저장 (시간 추가)
+    clean_output_path = os.path.join(output_dir, f"{current_time}_{name}_clean.png")
+    
+    # 출력 경로 설정 (시간 추가)
+    json_output_path = os.path.join(output_dir, f"{current_time}_{name}_text.json")
     
     # 말풍선 내 텍스트만 처리
     text_results, clean_image = processor.process_image(
@@ -70,7 +75,7 @@ def process_image(processor, image_path, output_dir, overlap, merge_distance, vi
         merge_distance=merge_distance
     )
     
-    # 결과 저장
+    #PNG형식으로 저장
     cv2.imwrite(clean_output_path, clean_image)
     
     # JSON 형식으로 텍스트 결과 저장
@@ -88,7 +93,11 @@ def process_image(processor, image_path, output_dir, overlap, merge_distance, vi
             "id": idx,
             "text": item.get('text', ''),
             "bbox": item.get('bbox', []),
-            "confidence": item.get('confidence', 0)
+            "confidence": item.get('confidence', 0),
+            # 추가 정보
+            #"style": item.get('style', {}),
+            #"appearance": item.get('appearance', {}),
+            #"geometry": item.get('geometry', {})
         }
         json_data["texts"].append(text_entry)
     
@@ -97,7 +106,7 @@ def process_image(processor, image_path, output_dir, overlap, merge_distance, vi
     
     # 시각화 이미지 생성 (선택사항)
     if visualize:
-        vis_output_path = os.path.join(output_dir, f"{name}_visualized{ext}")
+        vis_output_path = os.path.join(output_dir, f"{current_time}_{name}_visualized{ext}")
         result_image = processor.visualize_results(image_path)
         cv2.imwrite(vis_output_path, result_image)
     

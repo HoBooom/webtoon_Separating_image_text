@@ -277,50 +277,49 @@ class AzureTextProcessor:
         
     def process_entire_image(self, image_path):
         """
-        Azure OCR API를 사용하여 이미지 전체를 처리합니다.
-        이 방법은 텍스트 감지와 인식을 모두 Azure에 의존합니다.
+        이미지에서 텍스트를 추출합니다.
         
         Args:
             image_path: 이미지 경로
             
         Returns:
-            텍스트 추출 결과
+            텍스트 추출 결과 사전
         """
-        # 이미지 파일을 바이트로 읽기
-        with open(image_path, "rb") as image_file:
-            img_bytes = image_file.read()
-        
-        # Azure OCR API 호출
         try:
+            # 이미지 로드
+            image = cv2.imread(image_path)
+            if image is None:
+                print(f"Error: Could not read image from {image_path}")
+                return {}
+
+            # 이미지를 바이트로 변환
+            _, img_encoded = cv2.imencode('.jpg', image)
+            img_bytes = img_encoded.tobytes()
+
+            # API 호출
             response = requests.post(
                 self.ocr_url,
                 headers=self.headers,
                 params={'language': self.lang, 'readingOrder': 'natural'},
                 data=img_bytes
             )
-            response.raise_for_status()
             
-            # 작업 상태 폴링을 위한 URL 받기
+            # 비동기 처리 URL 가져오기
             operation_url = response.headers["Operation-Location"]
             
-            # 분석 결과 기다리기
-            analysis = {}
-            poll = True
-            while poll:
-                response_final = requests.get(
-                    operation_url,
-                    headers={"Ocp-Apim-Subscription-Key": self.api_key}
-                )
-                analysis = response_final.json()
-                
-                if "status" in analysis and analysis["status"] == "succeeded":
-                    poll = False
-                elif "status" in analysis and analysis["status"] == "failed":
-                    return {}
-                else:
-                    time.sleep(1)
+            # 결과 대기
+            while True:
+                response = requests.get(operation_url, headers=self.headers)
+                if response.status_code == 200:
+                    analysis = response.json()
+                    if analysis["status"] == "succeeded":
+                        break
+                    elif analysis["status"] == "failed":
+                        print("OCR 분석 실패")
+                        return {}
+                time.sleep(1)
             
-            # 결과 파싱 및 반환
+            # 결과 추출
             results = {}
             count = 0
             
@@ -337,11 +336,31 @@ class AzureTextProcessor:
                             minc, maxc = min(x_values), max(x_values)
                             bbox = [int(minr), int(minc), int(maxr), int(maxc)]
                             
-                            results[count] = {
+                            # 추가 정보 추출
+                            appearance = line.get("appearance", {})
+                            style = appearance.get("style", {})
+                            
+                            text_info = {
                                 'bbox': bbox,
                                 'text': line["text"],
-                                'confidence': line.get("confidence", 0.9)
+                                'confidence': line.get("confidence", 0.9),
+                                # 추가 정보
+                                'style': {
+                                    'name': style.get('name', ''),  # 폰트 이름
+                                    'confidence': style.get('confidence', 0),  # 스타일 인식 신뢰도
+                                },
+                                'appearance': {
+                                    'textColor': appearance.get('textColor', {}),  # 텍스트 색상
+                                    'backgroundColor': appearance.get('backgroundColor', {}),  # 배경 색상
+                                },
+                                'geometry': {
+                                    'angle': line.get('angle', 0),  # 텍스트 기울기
+                                    'width': line.get('width', 0),  # 텍스트 영역 너비
+                                    'height': line.get('height', 0),  # 텍스트 영역 높이
+                                }
                             }
+                            
+                            results[count] = text_info
                             count += 1
             
             return results

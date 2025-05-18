@@ -1,6 +1,7 @@
 import os
 import cv2
 import json
+import time
 from speech_bubble_ocr import SpeechBubbleOCR
 import argparse
 
@@ -39,10 +40,13 @@ def main():
     image_basename = os.path.basename(args.image)
     name, ext = os.path.splitext(image_basename)
     
-    # 출력 경로 설정
-    vis_output_path = os.path.join(args.output_dir, f"{name}_visualized{ext}")
-    clean_output_path = os.path.join(args.output_dir, f"{name}_clean{ext}")
-    json_output_path = os.path.join(args.output_dir, f"{name}_text.json")
+    # 현재 시간을 파일명에 추가
+    current_time = time.strftime("%Y%m%d_%H%M%S")
+    
+    # 출력 경로 설정 (시간 추가 및 PNG 고정)
+    vis_output_path = os.path.join(args.output_dir, f"{current_time}_{name}_visualized{ext}")
+    clean_output_path = os.path.join(args.output_dir, f"{current_time}_{name}_clean.png") # .png로 고정
+    json_output_path = os.path.join(args.output_dir, f"{current_time}_{name}_text.json")
     
     # 말풍선 OCR 프로세서 초기화
     processor = SpeechBubbleOCR(
@@ -101,7 +105,11 @@ def main():
             "id": idx,
             "text": item.get('text', ''),
             "bbox": item.get('bbox', []),
-            "confidence": item.get('confidence', 0)
+            "confidence": item.get('confidence', 0.0), # batch_process.py와 동일하게 float으로
+            # 상세 OCR 정보 추가
+            #"font_style_details": item.get('font_style_details', {}),
+            #"appearance_details": item.get('appearance_details', {}),
+            #"geometry_details": item.get('geometry_details', {})
         }
         json_data["texts"].append(text_entry)
     
