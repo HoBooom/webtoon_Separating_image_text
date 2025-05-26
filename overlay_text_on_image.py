@@ -3,170 +3,167 @@ import os
 import argparse
 from PIL import Image
 
-def create_overlay_html(json_path, output_html_path):
+def generate_text_overlay_data(json_ocr_path, output_json_path):
     """
-    JSON 파일을 기반으로 이미지 위에 텍스트를 오버레이하는 HTML 파일을 생성합니다.
-    JSON 파일과 동일한 이름 규칙을 따르는 _clean.png 또는 _clean.jpg 이미지를 배경으로 사용합니다.
-
-    JSON 파일은 다음을 포함해야 합니다:
-    - "texts": 텍스트 객체 목록, 각 객체는 다음을 포함:
-        - "text": 표시할 문자열
-        - "bbox": 텍스트 경계 상자의 [y_min, x_min, y_max, x_max] 목록
+    OCR JSON 파일을 기반으로 프론트엔드에서 사용할 텍스트 오버레이 데이터를 JSON 형식으로 생성합니다.
+    데이터에는 원본 이미지 정보, 상대 좌표(%) 및 스타일 정보가 포함됩니다.
+    배경 이미지는 OCR JSON 파일명과 유사한 _clean.png 또는 _clean.jpg 파일을 사용합니다.
     """
     try:
-        with open(json_path, 'r', encoding='utf-8') as f:
-            data = json.load(f)
+        with open(json_ocr_path, 'r', encoding='utf-8') as f:
+            ocr_data = json.load(f)
     except FileNotFoundError:
-        print(f"오류: JSON 파일을 찾을 수 없습니다. 경로: {json_path}")
-        return
+        print(f"오류: OCR JSON 파일을 찾을 수 없습니다. 경로: {json_ocr_path}")
+        return None
     except json.JSONDecodeError:
-        print(f"오류: {json_path}에서 JSON을 디코딩할 수 없습니다.")
-        return
+        print(f"오류: {json_ocr_path}에서 JSON을 디코딩할 수 없습니다.")
+        return None
 
-    texts = data.get("texts", [])
-    json_dir = os.path.dirname(os.path.abspath(json_path))
-    json_basename = os.path.basename(json_path)
+    texts_from_ocr = ocr_data.get("texts", [])
+    json_dir = os.path.dirname(os.path.abspath(json_ocr_path))
+    json_basename = os.path.basename(json_ocr_path)
 
     if not json_basename.endswith("_text.json"):
-        print(f"오류: JSON 파일명이 '_text.json'으로 끝나지 않습니다. 예: 'prefix_text.json'. 현재 파일명: {json_basename}")
-        return
+        print(f"오류: OCR JSON 파일명이 '_text.json'으로 끝나지 않아야 합니다. 예: 'prefix_text.json'. 현재 파일명: {json_basename}")
+        return None
         
-    # Derive _clean.png / _clean.jpg path
-    prefix = json_basename[:-len("_text.json")] # "_text.json" 제거하여 prefix 추출
+    prefix = json_basename[:-len("_text.json")]
     
     clean_image_filename_png = f"{prefix}_clean.png"
     clean_image_filename_jpg = f"{prefix}_clean.jpg"
     
-    actual_image_path_on_disk_png = os.path.join(json_dir, clean_image_filename_png)
-    actual_image_path_on_disk_jpg = os.path.join(json_dir, clean_image_filename_jpg)
+    path_on_disk_png = os.path.join(json_dir, clean_image_filename_png)
+    path_on_disk_jpg = os.path.join(json_dir, clean_image_filename_jpg)
 
     actual_image_path_on_disk = None
-    image_path_for_html = None
+    image_filename_for_frontend = None # 프론트엔드가 참조할 파일명 (경로X)
 
-    if os.path.exists(actual_image_path_on_disk_png):
-        actual_image_path_on_disk = actual_image_path_on_disk_png
-        image_path_for_html = clean_image_filename_png
-    elif os.path.exists(actual_image_path_on_disk_jpg):
-        actual_image_path_on_disk = actual_image_path_on_disk_jpg
-        image_path_for_html = clean_image_filename_jpg
+    if os.path.exists(path_on_disk_png):
+        actual_image_path_on_disk = path_on_disk_png
+        image_filename_for_frontend = clean_image_filename_png
+    elif os.path.exists(path_on_disk_jpg):
+        actual_image_path_on_disk = path_on_disk_jpg
+        image_filename_for_frontend = clean_image_filename_jpg
     
     if not actual_image_path_on_disk:
         print(f"오류: 클린 이미지를 찾을 수 없습니다. 다음 경로에서 확인: ")
-        print(f"  - {actual_image_path_on_disk_png}")
-        print(f"  - {actual_image_path_on_disk_jpg}")
-        return
+        print(f"  - {path_on_disk_png}")
+        print(f"  - {path_on_disk_jpg}")
+        return None
 
     try:
         with Image.open(actual_image_path_on_disk) as img:
-            img_width, img_height = img.size
-    except FileNotFoundError: # 이미 위에서 확인했지만, 안전장치로 둡니다.
-        print(f"오류: 이미지 파일을 찾을 수 없습니다. 경로: {actual_image_path_on_disk}")
-        return
+            original_image_width, original_image_height = img.size
     except Exception as e:
         print(f"오류: 이미지 파일을 열거나 읽을 수 없습니다. {actual_image_path_on_disk}: {e}")
-        return
+        return None
 
-    html_content = f"""
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>웹툰 텍스트 오버레이</title>
-    <style>
-        body {{ margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; background-color: #f0f0f0; }}
-        .webtoon-container {{
-            position: relative;
-            width: {img_width}px;
-            height: {img_height}px;
-            background-image: url('{image_path_for_html.replace("\\\\", "/")}'); /* URL에는 슬래시(/)를 사용하도록 보장 */
-            background-size: contain; /* 이미지 비율 유지하며 컨테이너에 맞춤 */
-            background-position: center; /* 이미지를 컨테이너 중앙에 위치 */
-            background-repeat: no-repeat;
-            border: 1px solid #ccc;
-        }}
-        .text-overlay {{
-            position: absolute;
-            background-color: rgba(255, 255, 255, 0.0); /* 투명 배경, 디버깅 시 변경 가능 */
-            color: black; /* 기본 텍스트 색상 */
-            font-family: 'Malgun Gothic', 'Arial', sans-serif; /* 기본 글꼴 */
-            /* font-size: 16px; /* 기본 글꼴 크기, 아래에서 동적으로 설정됨 */
-            line-height: 1.2;
-            padding: 2px;
-            box-sizing: border-box;
-            /* border: 1px dashed red; /* 텍스트 상자 경계 디버깅용 */ */
-            white-space: pre-wrap; /* 텍스트의 공백 및 줄바꿈 유지 */
-            overflow: hidden; /* bbox를 벗어나는 텍스트 자르기 */
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            text-align: center; 
-        }}
-    </style>
-</head>
-<body>
-    <div class="webtoon-container">
-"""
+    output_data = {
+        "original_image_width": original_image_width,
+        "original_image_height": original_image_height,
+        "image_filename": image_filename_for_frontend, # output_dir에 있다고 가정하고 파일명만 전달
+        "texts": []
+    }
 
-    for text_info in texts:
+    for idx, text_info in enumerate(texts_from_ocr):
         text_content = text_info.get("text", "")
-        bbox = text_info.get("bbox")
+        bbox_abs = text_info.get("bbox") # [y_min, x_min, y_max, x_max]
 
-        if not bbox or len(bbox) != 4:
+        if not bbox_abs or len(bbox_abs) != 4:
             print(f"경고: 유효하지 않거나 누락된 bbox로 인해 텍스트 항목을 건너뛰었습니다: {text_info}")
             continue
 
-        y_min, x_min, y_max, x_max = bbox
-        
-        top = y_min
-        left = x_min
-        width = x_max - x_min
-        height = y_max - y_min
+        y_min, x_min, y_max, x_max = bbox_abs
+        abs_bbox_width = x_max - x_min
+        abs_bbox_height = y_max - y_min
 
-        if width <= 0 or height <= 0:
-            print(f"경고: 너비 또는 높이가 0 이하인 bbox를 건너뛰었습니다: {bbox}")
+        if abs_bbox_width <= 0 or abs_bbox_height <= 0:
+            print(f"경고: 너비 또는 높이가 0 이하인 bbox를 건너뛰었습니다: {bbox_abs}")
             continue
-            
-        # 글꼴 크기 동적 계산 (간단한 휴리스틱)
-        # 높이를 기준으로 기본 크기 설정
-        dynamic_font_size = int(height * 0.7)
-        # 텍스트 길이에 비해 너비가 너무 좁으면 글꼴 크기 줄이기
-        # (문자 평균 너비를 글꼴 크기의 0.6배로 가정)
-        if len(text_content) > 0 and width < len(text_content) * (dynamic_font_size * 0.6):
-            dynamic_font_size = int(width / (len(text_content) * 0.6))
+        
+        # bbox를 % 단위로 변환
+        bbox_percent = {
+            "left": (x_min / original_image_width) * 100,
+            "top": (y_min / original_image_height) * 100,
+            "width": (abs_bbox_width / original_image_width) * 100,
+            "height": (abs_bbox_height / original_image_height) * 100
+        }
 
-        dynamic_font_size = max(8, dynamic_font_size) # 최소 글꼴 크기 8px
-        dynamic_font_size = min(dynamic_font_size, height - 2) # 패딩 고려, 높이를 초과하지 않도록
-        dynamic_font_size = max(1, dynamic_font_size) # 0이나 음수가 되지 않도록 최종 확인
+        # 동적 폰트 크기 계산 (px 단위, 원본 이미지 기준)
+        num_lines = text_content.count('\n') + 1
+        line_height_css_multiplier = 1.2
+        
+        font_size_h_px = int((abs_bbox_height / num_lines) / line_height_css_multiplier) if num_lines > 0 else abs_bbox_height
+        
+        longest_line_len = 0
+        if num_lines > 1:
+            for line_text in text_content.split('\n'):
+                if len(line_text) > longest_line_len:
+                    longest_line_len = len(line_text)
+        else:
+            longest_line_len = len(text_content)
 
-        html_content += f"""
-        <div class="text-overlay" style="left: {left}px; top: {top}px; width: {width}px; height: {height}px; font-size: {dynamic_font_size}px;">{text_content}</div>
-"""
+        font_size_w_px = float('inf')
+        if longest_line_len > 0:
+            font_size_w_px = int(abs_bbox_width / (longest_line_len * 0.55)) # 0.6 대신 0.55로 약간 조정
 
-    html_content += """
-    </div>
-</body>
-</html>
-"""
+        calculated_font_size_px = min(font_size_h_px, font_size_w_px)
+        calculated_font_size_px = max(8, calculated_font_size_px) # 원본 기준 최소 8px
+        
+        max_font_for_bbox_height_px = int((abs_bbox_height / num_lines) / line_height_css_multiplier * 0.95) if num_lines > 0 else int(abs_bbox_height * 0.7)
+        calculated_font_size_px = min(calculated_font_size_px, max_font_for_bbox_height_px)
+        calculated_font_size_px = max(1, calculated_font_size_px)
+
+        # 폰트 크기를 vw 단위로 변환 (Viewport Width 기준)
+        # 1vw = 원본 이미지 너비의 1%
+        # font_size_vw = (calculated_font_size_px / original_image_width) * 100
+        # 이 값은 프론트엔드에서 viewport 너비에 따라 실제 픽셀 크기로 변환됨
+        font_size_vw = round((calculated_font_size_px / original_image_width) * 100, 2) if original_image_width > 0 else 1.0
+
+        output_data["texts"].append({
+            "id": idx,
+            "content": text_content,
+            "bbox_percent": bbox_percent,
+            "style": {
+                "font_family": "Malgun Gothic, Arial, sans-serif", # 기본값, 추후 API 파라미터로 변경 가능
+                "font_size_vw": font_size_vw, 
+                "color": "black", # 기본값
+                "text_align": "center",
+                "line_height": line_height_css_multiplier
+            }
+        })
 
     try:
-        with open(output_html_path, 'w', encoding='utf-8') as f:
-            f.write(html_content)
-        print(f"HTML 오버레이를 성공적으로 생성했습니다: {os.path.abspath(output_html_path)}")
+        with open(output_json_path, 'w', encoding='utf-8') as f:
+            json.dump(output_data, f, ensure_ascii=False, indent=2)
+        print(f"텍스트 오버레이 데이터를 성공적으로 생성했습니다: {os.path.abspath(output_json_path)}")
+        return output_data
     except IOError:
-        print(f"오류: HTML 파일을 {output_html_path}에 쓸 수 없습니다.")
-
+        print(f"오류: JSON 데이터를 {output_json_path}에 쓸 수 없습니다.")
+        return None
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="JSON에서 텍스트를 가져와 이미지 위에 오버레이하는 HTML 파일을 생성합니다.\\nJSON 파일과 이름이 유사한 _clean.png 또는 _clean.jpg 이미지를 배경으로 사용합니다.")
-    parser.add_argument("json_file", help="입력 JSON 파일 경로입니다. (예: ..._text.json)")
-    
+    parser = argparse.ArgumentParser(
+        description="OCR JSON 파일을 기반으로 프론트엔드용 텍스트 오버레이 JSON 데이터를 생성합니다.\n" \
+                    "배경 이미지는 OCR JSON 파일명과 유사한 _clean.png 또는 _clean.jpg 파일을 사용합니다."
+    )
+    parser.add_argument("ocr_json_file", help="입력 OCR JSON 파일 경로입니다. (예: ..._text.json)")
+    parser.add_argument("-o", "--output", 
+                        help="출력 데이터 JSON 파일 경로입니다. 기본값은 입력 JSON과 이름이 같고 '_overlay_data.json'으로 끝납니다.")
+
     args = parser.parse_args()
 
-    json_file_path = args.json_file
+    ocr_json_file_path = args.ocr_json_file
+    output_file_path = args.output
+
+    if not output_file_path:
+        base_dir = os.path.dirname(os.path.abspath(ocr_json_file_path))
+        base_filename = os.path.splitext(os.path.basename(ocr_json_file_path))[0]
+        # _text를 _overlay_data로 변경
+        if base_filename.endswith("_text"):
+            output_base_filename = base_filename[:-len("_text")] + "_overlay_data"
+        else:
+            output_base_filename = base_filename + "_overlay_data"
+        output_file_path = os.path.join(base_dir, f"{output_base_filename}.json")
     
-    json_dir_for_output = os.path.dirname(os.path.abspath(json_file_path))
-    json_filename_without_ext_for_output = os.path.splitext(os.path.basename(json_file_path))[0]
-    output_html_file_path = os.path.join(json_dir_for_output, f"{json_filename_without_ext_for_output}_overlay.html")
-    
-    create_overlay_html(json_file_path, output_html_file_path) 
+    generate_text_overlay_data(ocr_json_file_path, output_file_path) 

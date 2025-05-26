@@ -299,8 +299,10 @@ class SpeechBubbleOCR:
             max_r = max(box['bbox'][2] for box in cluster_boxes)
             max_c = max(box['bbox'][3] for box in cluster_boxes)
             
-            # 모든 텍스트 결합
-            merged_text = " ".join(box['text'] for box in cluster_boxes)
+            # 모든 텍스트 결합 (줄바꿈 유지)
+            # 각 box['text']는 Azure에서 이미 한 줄 단위로 인식된 텍스트이므로, 
+            # 이를 \n으로 연결하면 원래의 줄바꿈을 유지할 수 있습니다.
+            merged_text = "\n".join(box['text'] for box in cluster_boxes)
             
             # 신뢰도 평균 계산
             total_confidence = sum(box['confidence'] for box in cluster_boxes)

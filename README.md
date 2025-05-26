@@ -9,6 +9,7 @@
 3. 말풍선 내에 위치한 텍스트만 필터링하여 처리
 4. 말풍선 내 텍스트가 제거된 클린 이미지 생성
 5. 결과 시각화 (말풍선 및 텍스트 영역 표시)
+6. **텍스트 오버레이 데이터 생성** - 추출된 텍스트를 원본 이미지 위에 다시 표시할 수 있는 JSON 데이터 생성
 
 ## 설치 방법
 
@@ -80,6 +81,12 @@ python tune_detection.py --image path_to_image.jpg --api_key your_azure_api_key 
 python batch_process.py --input_dir your_images_folder --api_key your_azure_api_key --endpoint your_azure_endpoint
 ```
 
+### 텍스트 오버레이 데이터 생성
+```bash
+python overlay_text_on_image.py path/to/text.json -o path/to/output.json
+```
+
+이 명령어는 OCR 결과 JSON 파일(`*_text.json`)을 입력으로 받아 프론트엔드에서 사용할 수 있는 텍스트 오버레이 데이터를 생성합니다.
 
 #### 추가 옵션
 
@@ -94,6 +101,11 @@ python batch_process.py --input_dir your_images_folder --api_key your_azure_api_
 1. 시각화된 이미지: 말풍선(파란색)과 인식된 텍스트 영역(녹색) 표시
 2. 텍스트가 삭제된 클린 이미지: 말풍선 내 텍스트만 제거된 이미지
 3. 텍스트 파일: 추출된 텍스트 내용
+4. **텍스트 오버레이 데이터** (`*_overlay_data.json`): 프론트엔드에서 텍스트를 이미지 위에 표시하기 위한 데이터
+   - 원본 이미지 크기 정보
+   - 텍스트의 상대 좌표(%) 및 내용
+   - 클린 이미지 파일명 참조
+   - 다양한 화면 크기에 대응 가능한 반응형 좌표 시스템
 
 ## 주의사항
 
