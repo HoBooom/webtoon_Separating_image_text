@@ -97,6 +97,12 @@ def main():
         "merge_enabled": args.merge,
         "merge_distance": args.merge_distance if args.merge else None,
         "merge_any_overlap": args.merge_any_overlap if args.merge else None,
+        "default_font_settings": {
+            "font_path": "/System/Library/Fonts/Supplemental/NotoSansKR.ttc",  # 구글 Noto Sans Korean 폰트 기본 경로
+            "font_size": 18,
+            "font_weight": "bold",
+            "text_align": "center"
+        },
         "texts": []
     }
     
@@ -105,11 +111,13 @@ def main():
             "id": idx,
             "text": item.get('text', ''),
             "bbox": item.get('bbox', []),
-            "confidence": item.get('confidence', 0.0), # batch_process.py와 동일하게 float으로
-            # 상세 OCR 정보 추가
-            #"font_style_details": item.get('font_style_details', {}),
-            #"appearance_details": item.get('appearance_details', {}),
-            #"geometry_details": item.get('geometry_details', {})
+            "confidence": item.get('confidence', 0.0),
+            "font_settings": {
+                "font_path": "/System/Library/Fonts/Supplemental/NotoSansKR.ttc",  # 개별 텍스트에도 기본 폰트 설정
+                "font_size": 18,
+                "font_weight": "bold",
+                "text_align": "center"
+            }
         }
         json_data["texts"].append(text_entry)
     
