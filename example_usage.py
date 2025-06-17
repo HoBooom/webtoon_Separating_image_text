@@ -91,6 +91,7 @@ def main():
     cv2.imwrite(clean_output_path, clean_image)
     
     # JSON 형식으로 텍스트 결과 저장
+    # 기본 세팅값
     json_data = {
         "image": args.image,
         "total_texts": len(text_results),
@@ -124,7 +125,7 @@ def main():
     with open(json_output_path, 'w', encoding='utf-8') as f:
         json.dump(json_data, f, ensure_ascii=False, indent=2)
     
-    print(f"처리 완료!")
+    print(f"처리 완료!!")
     print(f"결과 시각화 이미지: {vis_output_path}")
     print(f"텍스트 삭제된 이미지: {clean_output_path}")
     print(f"추출된 텍스트 (JSON): {json_output_path}")

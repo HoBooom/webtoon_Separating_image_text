@@ -85,6 +85,12 @@ def process_image(processor, image_path, output_dir, overlap, merge_distance, vi
         "merge_enabled": processor.merge_boxes,
         "merge_distance": processor.merge_distance_threshold if processor.merge_boxes else None,
         "merge_any_overlap": processor.merge_any_overlap if processor.merge_boxes else None,
+        "default_font_settings": {
+            "font_path": "/System/Library/Fonts/Supplemental/NotoSansKR.ttc",  # 구글 Noto Sans Korean 폰트 기본 경로
+            "font_size": 18,
+            "font_weight": "bold",
+            "text_align": "center"
+        },
         "texts": []
     }
     
@@ -94,10 +100,12 @@ def process_image(processor, image_path, output_dir, overlap, merge_distance, vi
             "text": item.get('text', ''),
             "bbox": item.get('bbox', []),
             "confidence": item.get('confidence', 0),
-            # 추가 정보
-            #"style": item.get('style', {}),
-            #"appearance": item.get('appearance', {}),
-            #"geometry": item.get('geometry', {})
+            "font_settings": {
+                "font_path": "/System/Library/Fonts/Supplemental/NotoSansKR.ttc",  # 개별 텍스트에도 기본 폰트 설정
+                "font_size": 18,
+                "font_weight": "bold",
+                "text_align": "center"
+            }
         }
         json_data["texts"].append(text_entry)
     
