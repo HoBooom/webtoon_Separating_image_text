@@ -1,0 +1,26 @@
+{
+  "image": "./images/재벌집_막내아들/1화/6.jpg",
+  "total_texts": 1,
+  "merge_enabled": true,
+  "merge_distance": 20,
+  "merge_any_overlap": true,
+  "default_font_settings": {
+    "font_path": "/System/Library/Fonts/Supplemental/NotoSansKR.ttc",
+    "font_size": 18,
+    "font_weight": "bold",
+    "text_align": "center"
+  },
+  "texts": [
+    {
+      "id": 0,
+      "text": "아버지는 친척들을 불러\n조촐하게나마 잔치를 벌였다.",
+      "bbox": [
+        1194,
+        222,
+        1291,
+        636
+      ],
+      "confidence": 0.9
+    }
+  ]
+}

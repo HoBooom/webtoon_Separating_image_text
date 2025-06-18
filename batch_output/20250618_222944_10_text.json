@@ -1,0 +1,48 @@
+{
+  "image": "./images/중증외상센터/1화/10.jpg",
+  "total_texts": 3,
+  "merge_enabled": true,
+  "merge_distance": 20,
+  "merge_any_overlap": true,
+  "default_font_settings": {
+    "font_path": "/System/Library/Fonts/Supplemental/NotoSansKR.ttc",
+    "font_size": 18,
+    "font_weight": "bold",
+    "text_align": "center"
+  },
+  "texts": [
+    {
+      "id": 0,
+      "text": "저도 의사 출신이라 압니다.\n돈만으로 되는 건 아니라는 거.",
+      "bbox": [
+        156,
+        122,
+        233,
+        460
+      ],
+      "confidence": 0.9
+    },
+    {
+      "id": 1,
+      "text": "하지만 여러분은 우리나라\n최고의 병원 원장님들 아니십니까?\n그런데 1년간 아무 변화도\n보질 못해요?",
+      "bbox": [
+        310,
+        235,
+        469,
+        617
+      ],
+      "confidence": 0.9
+    },
+    {
+      "id": 2,
+      "text": "사명감 있는\n의사 선생님들이야 많지만\n그분들이 외상외과에 가도\n가르칠 사람이 있어야 말이죠.",
+      "bbox": [
+        1146,
+        290,
+        1305,
+        603
+      ],
+      "confidence": 0.9
+    }
+  ]
+}

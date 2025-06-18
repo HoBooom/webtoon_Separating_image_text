@@ -1,0 +1,37 @@
+{
+  "image": "./images/중증외상센터/1화/6.jpg",
+  "total_texts": 2,
+  "merge_enabled": true,
+  "merge_distance": 20,
+  "merge_any_overlap": true,
+  "default_font_settings": {
+    "font_path": "/System/Library/Fonts/Supplemental/NotoSansKR.ttc",
+    "font_size": 18,
+    "font_weight": "bold",
+    "text_align": "center"
+  },
+  "texts": [
+    {
+      "id": 0,
+      "text": "일주일 전",
+      "bbox": [
+        168,
+        299,
+        205,
+        422
+      ],
+      "confidence": 0.9
+    },
+    {
+      "id": 1,
+      "text": "100억입니다!",
+      "bbox": [
+        1014,
+        190,
+        1073,
+        482
+      ],
+      "confidence": 0.9
+    }
+  ]
+}

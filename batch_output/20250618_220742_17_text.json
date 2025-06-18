@@ -1,0 +1,37 @@
+{
+  "image": "./images/재벌집_막내아들/1화/17.jpg",
+  "total_texts": 2,
+  "merge_enabled": true,
+  "merge_distance": 20,
+  "merge_any_overlap": true,
+  "default_font_settings": {
+    "font_path": "/System/Library/Fonts/Supplemental/NotoSansKR.ttc",
+    "font_size": 18,
+    "font_weight": "bold",
+    "text_align": "center"
+  },
+  "texts": [
+    {
+      "id": 0,
+      "text": "로열 패밀리의\n감춰진 진면목을\n나만큼 아는 사람은 드물었고,",
+      "bbox": [
+        601,
+        132,
+        750,
+        555
+      ],
+      "confidence": 0.9
+    },
+    {
+      "id": 1,
+      "text": "난 그들의 신뢰를 얻었다.",
+      "bbox": [
+        1438,
+        157,
+        1487,
+        518
+      ],
+      "confidence": 0.9
+    }
+  ]
+}

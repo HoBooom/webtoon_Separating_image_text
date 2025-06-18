@@ -1,0 +1,89 @@
+{
+  "total_images": 12,
+  "total_texts_extracted": 21,
+  "processing_time_seconds": 69.90599203109741,
+  "average_time_per_image": 5.825499335924785,
+  "settings": {
+    "model": "./models/model.pt",
+    "confidence_threshold": 0.5,
+    "overlap_threshold": 0.5,
+    "merge_enabled": true,
+    "merge_distance": 20,
+    "merge_any_overlap": true,
+    "language": "ko"
+  },
+  "results": [
+    {
+      "image": "./images/중증외상센터/1화/1.jpg",
+      "filename": "1.jpg",
+      "texts_count": 0,
+      "status": "success"
+    },
+    {
+      "image": "./images/중증외상센터/1화/10.jpg",
+      "filename": "10.jpg",
+      "texts_count": 3,
+      "status": "success"
+    },
+    {
+      "image": "./images/중증외상센터/1화/11.jpg",
+      "filename": "11.jpg",
+      "texts_count": 2,
+      "status": "success"
+    },
+    {
+      "image": "./images/중증외상센터/1화/12.jpg",
+      "filename": "12.jpg",
+      "texts_count": 2,
+      "status": "success"
+    },
+    {
+      "image": "./images/중증외상센터/1화/2.jpg",
+      "filename": "2.jpg",
+      "texts_count": 2,
+      "status": "success"
+    },
+    {
+      "image": "./images/중증외상센터/1화/3.jpg",
+      "filename": "3.jpg",
+      "texts_count": 1,
+      "status": "success"
+    },
+    {
+      "image": "./images/중증외상센터/1화/4.jpg",
+      "filename": "4.jpg",
+      "texts_count": 2,
+      "status": "success"
+    },
+    {
+      "image": "./images/중증외상센터/1화/5.jpg",
+      "filename": "5.jpg",
+      "texts_count": 1,
+      "status": "success"
+    },
+    {
+      "image": "./images/중증외상센터/1화/6.jpg",
+      "filename": "6.jpg",
+      "texts_count": 2,
+      "status": "success"
+    },
+    {
+      "image": "./images/중증외상센터/1화/7.jpg",
+      "filename": "7.jpg",
+      "texts_count": 3,
+      "status": "success"
+    },
+    {
+      "image": "./images/중증외상센터/1화/8.jpg",
+      "filename": "8.jpg",
+      "texts_count": 3,
+      "status": "success"
+    },
+    {
+      "image": "./images/중증외상센터/1화/9.jpg",
+      "filename": "9.jpg",
+      "texts_count": 0,
+      "status": "success"
+    }
+  ]
+}

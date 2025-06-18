@@ -1,0 +1,37 @@
+{
+  "image": "./images/중증외상센터/1화/4.jpg",
+  "total_texts": 2,
+  "merge_enabled": true,
+  "merge_distance": 20,
+  "merge_any_overlap": true,
+  "default_font_settings": {
+    "font_path": "/System/Library/Fonts/Supplemental/NotoSansKR.ttc",
+    "font_size": 18,
+    "font_weight": "bold",
+    "text_align": "center"
+  },
+  "texts": [
+    {
+      "id": 0,
+      "text": "환자\n의식이\n없습니다!",
+      "bbox": [
+        183,
+        465,
+        312,
+        582
+      ],
+      "confidence": 0.9
+    },
+    {
+      "id": 1,
+      "text": "서둘러 !!!",
+      "bbox": [
+        1206,
+        298,
+        1242,
+        440
+      ],
+      "confidence": 0.9
+    }
+  ]
+}

@@ -1,0 +1,37 @@
+{
+  "image": "./images/재벌집_막내아들/1화/14.jpg",
+  "total_texts": 2,
+  "merge_enabled": true,
+  "merge_distance": 20,
+  "merge_any_overlap": true,
+  "default_font_settings": {
+    "font_path": "/System/Library/Fonts/Supplemental/NotoSansKR.ttc",
+    "font_size": 18,
+    "font_weight": "bold",
+    "text_align": "center"
+  },
+  "texts": [
+    {
+      "id": 0,
+      "text": "순양의 로열 패밀리 중\n내 이름 윤현우를 모르는 사람은\n없게 됐다.",
+      "bbox": [
+        111,
+        197,
+        260,
+        650
+      ],
+      "confidence": 0.9
+    },
+    {
+      "id": 1,
+      "text": "그들이 아쉬울 때,\n항상 찾는 이름이 나였다.",
+      "bbox": [
+        1130,
+        287,
+        1231,
+        642
+      ],
+      "confidence": 0.9
+    }
+  ]
+}

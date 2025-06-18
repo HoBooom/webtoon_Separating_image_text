@@ -1,0 +1,37 @@
+{
+  "image": "./images/중증외상센터/1화/11.jpg",
+  "total_texts": 2,
+  "merge_enabled": true,
+  "merge_distance": 20,
+  "merge_any_overlap": true,
+  "default_font_settings": {
+    "font_path": "/System/Library/Fonts/Supplemental/NotoSansKR.ttc",
+    "font_size": 18,
+    "font_weight": "bold",
+    "text_align": "center"
+  },
+  "texts": [
+    {
+      "id": 0,
+      "text": "알고 있습니다.\n그게 언론들이 난리 치는\n이유니까요!",
+      "bbox": [
+        394,
+        75,
+        512,
+        342
+      ],
+      "confidence": 0.9
+    },
+    {
+      "id": 1,
+      "text": "장관님!",
+      "bbox": [
+        1450,
+        286,
+        1504,
+        426
+      ],
+      "confidence": 0.9
+    }
+  ]
+}

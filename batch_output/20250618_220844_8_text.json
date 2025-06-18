@@ -1,0 +1,26 @@
+{
+  "image": "./images/재벌집_막내아들/1화/8.jpg",
+  "total_texts": 1,
+  "merge_enabled": true,
+  "merge_distance": 20,
+  "merge_any_overlap": true,
+  "default_font_settings": {
+    "font_path": "/System/Library/Fonts/Supplemental/NotoSansKR.ttc",
+    "font_size": 18,
+    "font_weight": "bold",
+    "text_align": "center"
+  },
+  "texts": [
+    {
+      "id": 0,
+      "text": "하지만 ...\n그곳에서 내게 쥐어진 일은\n청소부 역할이었다.",
+      "bbox": [
+        417,
+        153,
+        565,
+        535
+      ],
+      "confidence": 0.9
+    }
+  ]
+}

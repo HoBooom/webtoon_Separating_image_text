@@ -1,0 +1,37 @@
+{
+  "image": "./images/재벌집_막내아들/1화/13.jpg",
+  "total_texts": 2,
+  "merge_enabled": true,
+  "merge_distance": 20,
+  "merge_any_overlap": true,
+  "default_font_settings": {
+    "font_path": "/System/Library/Fonts/Supplemental/NotoSansKR.ttc",
+    "font_size": 18,
+    "font_weight": "bold",
+    "text_align": "center"
+  },
+  "texts": [
+    {
+      "id": 0,
+      "text": "이를 악물고\n모든 것을 바쳐 ...",
+      "bbox": [
+        220,
+        303,
+        317,
+        550
+      ],
+      "confidence": 0.9
+    },
+    {
+      "id": 1,
+      "text": "그러다 어느 순간부터\n내 위치는 달라졌고",
+      "bbox": [
+        1135,
+        127,
+        1231,
+        436
+      ],
+      "confidence": 0.9
+    }
+  ]
+}

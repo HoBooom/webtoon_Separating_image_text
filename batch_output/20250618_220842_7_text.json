@@ -1,0 +1,37 @@
+{
+  "image": "./images/재벌집_막내아들/1화/7.jpg",
+  "total_texts": 2,
+  "merge_enabled": true,
+  "merge_distance": 20,
+  "merge_any_overlap": true,
+  "default_font_settings": {
+    "font_path": "/System/Library/Fonts/Supplemental/NotoSansKR.ttc",
+    "font_size": 18,
+    "font_weight": "bold",
+    "text_align": "center"
+  },
+  "texts": [
+    {
+      "id": 0,
+      "text": "그리고\n순양그룹의 컨트롤 타워인\n미래전략기획본부로\n발령이 났을 땐,",
+      "bbox": [
+        662,
+        56,
+        859,
+        434
+      ],
+      "confidence": 0.9
+    },
+    {
+      "id": 1,
+      "text": "꿈에 부풀어",
+      "bbox": [
+        953,
+        375,
+        1000,
+        550
+      ],
+      "confidence": 0.9
+    }
+  ]
+}

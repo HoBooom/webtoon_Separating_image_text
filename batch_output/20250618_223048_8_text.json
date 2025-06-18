@@ -1,0 +1,48 @@
+{
+  "image": "./images/중증외상센터/1화/8.jpg",
+  "total_texts": 3,
+  "merge_enabled": true,
+  "merge_distance": 20,
+  "merge_any_overlap": true,
+  "default_font_settings": {
+    "font_path": "/System/Library/Fonts/Supplemental/NotoSansKR.ttc",
+    "font_size": 18,
+    "font_weight": "bold",
+    "text_align": "center"
+  },
+  "texts": [
+    {
+      "id": 0,
+      "text": "그 ... 그것이.",
+      "bbox": [
+        463,
+        366,
+        494,
+        498
+      ],
+      "confidence": 0.9
+    },
+    {
+      "id": 1,
+      "text": "한국대학교 병원장\n김종은",
+      "bbox": [
+        705,
+        448,
+        773,
+        628
+      ],
+      "confidence": 0.9
+    },
+    {
+      "id": 2,
+      "text": "제가 장관직에\n임명되면서 걸었던 약속이\n‘중증외상센터 바로잡기'였는데\n지금 상황 좀 보세요!",
+      "bbox": [
+        1107,
+        153,
+        1289,
+        562
+      ],
+      "confidence": 0.9
+    }
+  ]
+}

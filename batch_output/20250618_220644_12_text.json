@@ -1,0 +1,37 @@
+{
+  "image": "./images/재벌집_막내아들/1화/12.jpg",
+  "total_texts": 2,
+  "merge_enabled": true,
+  "merge_distance": 20,
+  "merge_any_overlap": true,
+  "default_font_settings": {
+    "font_path": "/System/Library/Fonts/Supplemental/NotoSansKR.ttc",
+    "font_size": 18,
+    "font_weight": "bold",
+    "text_align": "center"
+  },
+  "texts": [
+    {
+      "id": 0,
+      "text": "그게 내 위치였다.",
+      "bbox": [
+        489,
+        207,
+        536,
+        459
+      ],
+      "confidence": 0.9
+    },
+    {
+      "id": 1,
+      "text": "하지만 난 포기하지 않고\n영어 공부는 물론 수많은\n사업 기획서를 훑어보았다.",
+      "bbox": [
+        1076,
+        93,
+        1225,
+        475
+      ],
+      "confidence": 0.9
+    }
+  ]
+}

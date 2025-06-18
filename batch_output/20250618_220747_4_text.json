@@ -1,0 +1,14 @@
+{
+  "image": "./images/재벌집_막내아들/1화/4.jpg",
+  "total_texts": 0,
+  "merge_enabled": true,
+  "merge_distance": 20,
+  "merge_any_overlap": true,
+  "default_font_settings": {
+    "font_path": "/System/Library/Fonts/Supplemental/NotoSansKR.ttc",
+    "font_size": 18,
+    "font_weight": "bold",
+    "text_align": "center"
+  },
+  "texts": []
+}

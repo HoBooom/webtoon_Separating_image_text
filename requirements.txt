@@ -6,4 +6,11 @@ torch>=1.8.0
 requests>=2.25.0
 azure-cognitiveservices-vision-computervision>=0.9.0
 tqdm>=4.50.0
-huggingface_hub>=0.13.0 
+huggingface_hub>=0.13.0
+
+fastapi>=0.110.0
+uvicorn>=0.27.1
+python-dotenv>=1.0.0
+supabase>=2.3.4
+python-multipart>=0.0.9
+pydantic>=2.6.3 

@@ -13,6 +13,22 @@ import time
 import json
 from tqdm import tqdm
 from speech_bubble_ocr import SpeechBubbleOCR
+from fastapi import FastAPI, UploadFile, File, Form
+from fastapi.middleware.cors import CORSMiddleware
+import shutil
+from typing import List
+import uvicorn
+
+app = FastAPI()
+
+# CORS 설정
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 def parse_args():
     parser = argparse.ArgumentParser(description='웹툰 이미지 배치 처리 도구')
@@ -100,12 +116,12 @@ def process_image(processor, image_path, output_dir, overlap, merge_distance, vi
             "text": item.get('text', ''),
             "bbox": item.get('bbox', []),
             "confidence": item.get('confidence', 0),
-            "font_settings": {
-                "font_path": "/System/Library/Fonts/Supplemental/NotoSansKR.ttc",  # 개별 텍스트에도 기본 폰트 설정
-                "font_size": 18,
-                "font_weight": "bold",
-                "text_align": "center"
-            }
+            # "font_settings": {
+            #     "font_path": "/System/Library/Fonts/Supplemental/NotoSansKR.ttc",  # 개별 텍스트에도 기본 폰트 설정
+            #     "font_size": 18,
+            #     "font_weight": "bold",
+            #     "text_align": "center"
+            # }
         }
         json_data["texts"].append(text_entry)
     
@@ -235,5 +251,39 @@ def main():
     print(f"결과는 '{args.output_dir}' 디렉토리에 저장되었습니다.")
     print(f"요약 정보 (JSON): {summary_path}")
 
+@app.post("/process-images")
+async def process_images(
+    files: List[UploadFile] = File(...),
+    episode_title: str = Form(...),
+    series_id: str = Form(...),
+    episode_number: str = Form(...)
+):
+    try:
+        # 임시 디렉토리 생성
+        temp_dir = f"temp/{series_id}/{episode_number}"
+        os.makedirs(temp_dir, exist_ok=True)
+
+        # 업로드된 파일들 저장
+        saved_files = []
+        for file in files:
+            file_location = os.path.join(temp_dir, file.filename)
+            with open(file_location, "wb+") as file_object:
+                shutil.copyfileobj(file.file, file_object)
+            saved_files.append(file_location)
+
+        # TODO: 여기에 이미지 처리 로직 추가
+        # 예: OCR, 이미지 정리 등
+
+        # 처리 결과 반환
+        return {
+            "clean_image_url": f"/processed/{series_id}/{episode_number}/clean_image.png",
+            "json_data_url": f"/processed/{series_id}/{episode_number}/text_data.json",
+            "total_texts": len(saved_files),
+            "processing_time": 0  # 실제 처리 시간으로 변경
+        }
+
+    except Exception as e:
+        return {"error": str(e)}
+
 if __name__ == "__main__":
-    main() 
+    uvicorn.run(app, host="0.0.0.0", port=5001) 

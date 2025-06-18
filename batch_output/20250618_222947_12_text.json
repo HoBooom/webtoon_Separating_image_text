@@ -1,0 +1,37 @@
+{
+  "image": "./images/중증외상센터/1화/12.jpg",
+  "total_texts": 2,
+  "merge_enabled": true,
+  "merge_distance": 20,
+  "merge_any_overlap": true,
+  "default_font_settings": {
+    "font_path": "/System/Library/Fonts/Supplemental/NotoSansKR.ttc",
+    "font_size": 18,
+    "font_weight": "bold",
+    "text_align": "center"
+  },
+  "texts": [
+    {
+      "id": 0,
+      "text": "제가 아주 우수한\n외상전문의를 한명\n알고 있습니다.",
+      "bbox": [
+        794,
+        64,
+        924,
+        300
+      ],
+      "confidence": 0.9
+    },
+    {
+      "id": 1,
+      "text": "칠성 병원장\n오성흠",
+      "bbox": [
+        1267,
+        104,
+        1334,
+        222
+      ],
+      "confidence": 0.9
+    }
+  ]
+}

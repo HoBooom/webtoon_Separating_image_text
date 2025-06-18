@@ -1,0 +1,37 @@
+{
+  "image": "./images/재벌집_막내아들/1화/3.jpg",
+  "total_texts": 2,
+  "merge_enabled": true,
+  "merge_distance": 20,
+  "merge_any_overlap": true,
+  "default_font_settings": {
+    "font_path": "/System/Library/Fonts/Supplemental/NotoSansKR.ttc",
+    "font_size": 18,
+    "font_weight": "bold",
+    "text_align": "center"
+  },
+  "texts": [
+    {
+      "id": 0,
+      "text": "연 매출 300조에\n육박하고 영업이익만\n30조가 넘으며,",
+      "bbox": [
+        193,
+        302,
+        344,
+        600
+      ],
+      "confidence": 0.9
+    },
+    {
+      "id": 1,
+      "text": "자동차와 전자를 필두로\n통신, 중공업, 화학, 유통,\n패션, 식품 등",
+      "bbox": [
+        1379,
+        105,
+        1531,
+        461
+      ],
+      "confidence": 0.9
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "image": "./images/중증외상센터/1화/5.jpg",
+  "total_texts": 1,
+  "merge_enabled": true,
+  "merge_distance": 20,
+  "merge_any_overlap": true,
+  "default_font_settings": {
+    "font_path": "/System/Library/Fonts/Supplemental/NotoSansKR.ttc",
+    "font_size": 18,
+    "font_weight": "bold",
+    "text_align": "center"
+  },
+  "texts": [
+    {
+      "id": 0,
+      "text": "그럼, 어디\n실력들 좀 볼까?",
+      "bbox": [
+        447,
+        392,
+        528,
+        595
+      ],
+      "confidence": 0.9
+    }
+  ]
+}

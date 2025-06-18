@@ -1,0 +1,37 @@
+{
+  "image": "./images/중증외상센터/1화/2.jpg",
+  "total_texts": 2,
+  "merge_enabled": true,
+  "merge_distance": 20,
+  "merge_any_overlap": true,
+  "default_font_settings": {
+    "font_path": "/System/Library/Fonts/Supplemental/NotoSansKR.ttc",
+    "font_size": 18,
+    "font_weight": "bold",
+    "text_align": "center"
+  },
+  "texts": [
+    {
+      "id": 0,
+      "text": "이야~",
+      "bbox": [
+        595,
+        180,
+        626,
+        250
+      ],
+      "confidence": 0.9
+    },
+    {
+      "id": 1,
+      "text": "병원\n거참 더럽게 크네.",
+      "bbox": [
+        1180,
+        74,
+        1261,
+        300
+      ],
+      "confidence": 0.9
+    }
+  ]
+}
